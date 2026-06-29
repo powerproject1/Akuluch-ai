@@ -621,7 +621,7 @@
             <div class="logo">
                 <div class="shark">🦈</div>
                 <div>
-                    <div class="title"><span>Shar AI</span></div>
+                    <div class="title"><span>Shark AI</span></div>
                     <div class="sub">акула</div>
                 </div>
             </div>
@@ -639,14 +639,14 @@
             <div class="empty-state" id="emptyState">
                 <div class="big-shark">🦈</div>
                 <p>Напишите что-нибудь</p>
-                <span>Shar AI ответит</span>
+                <span>Shark AI ответит</span>
             </div>
         </div>
 
         <!-- Ввод -->
         <div class="input-area">
             <div class="input-wrap">
-                <input type="text" id="input" placeholder="Спроси Shar AI..." autocomplete="off" />
+                <input type="text" id="input" placeholder="Спроси Shark AI..." autocomplete="off" />
                 <button id="attachBtn"><i class="fas fa-image"></i></button>
                 <button class="send" id="sendBtn"><i class="fas fa-arrow-up"></i></button>
             </div>
@@ -700,14 +700,14 @@
         // ===== Работа с чатами =====
         function loadAllChats() {
             try {
-                const saved = localStorage.getItem('sharAI_chats');
+                const saved = localStorage.getItem('sharkAI_chats');
                 if (saved) chats = JSON.parse(saved);
                 else chats = {};
             } catch (e) { chats = {}; }
         }
 
         function saveAllChats() {
-            try { localStorage.setItem('sharAI_chats', JSON.stringify(chats)); } catch (e) {}
+            try { localStorage.setItem('sharkAI_chats', JSON.stringify(chats)); } catch (e) {}
         }
 
         function createNewChat() {
@@ -823,12 +823,12 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${API_KEY}`,
                         'HTTP-Referer': window.location.origin,
-                        'X-Title': 'Shar AI'
+                        'X-Title': 'Shark AI'
                     },
                     body: JSON.stringify({
                         model: 'openai/gpt-3.5-turbo',
                         messages: [
-                            { role: 'system', content: 'Ты Shar AI — акула-помощник. Отвечай кратко и по делу.' },
+                            { role: 'system', content: 'Ты Shark AI — акула-помощник. Отвечай кратко и по делу.' },
                             ...history,
                             { role: 'user', content: message }
                         ],
@@ -932,7 +932,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${API_KEY}`,
                         'HTTP-Referer': window.location.origin,
-                        'X-Title': 'Shar AI'
+                        'X-Title': 'Shark AI'
                     },
                     body: JSON.stringify({
                         model: 'openai/gpt-4o-mini',
@@ -1037,7 +1037,7 @@
                 const prefix = msg.isUser ? '👤' : '🦈';
                 text += `${prefix} ${msg.text}\n`;
             });
-            text += `\n📱 Shar AI`;
+            text += `\n📱 Shark AI`;
 
             navigator.clipboard.writeText(text).then(() => {
                 alert('✅ Текст скопирован в буфер обмена!');
