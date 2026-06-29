@@ -826,9 +826,10 @@
                         'X-Title': 'Shark AI'
                     },
                     body: JSON.stringify({
-                        model: 'openai/gpt-3.5-turbo',
+                        // ✅ DEEPSEEK-V3 — УМНЫЙ, БЕСПЛАТНЫЙ, ПИШЕТ КОД, ПОНИМАЕТ РУССКИЙ
+                        model: 'deepseek/deepseek-v3',
                         messages: [
-                            { role: 'system', content: 'Ты Shark AI — акула-помощник. Отвечай кратко и по делу.' },
+                            { role: 'system', content: 'Ты Shark AI — акула-помощник. Отвечай на русском, помогай с кодом.' },
                             ...history,
                             { role: 'user', content: message }
                         ],
@@ -850,9 +851,8 @@
             }
         }
 
-        // ===== ОТПРАВКА СООБЩЕНИЯ — ГЛАВНАЯ ФУНКЦИЯ =====
+        // ===== ОТПРАВКА СООБЩЕНИЯ =====
         async function handleSend() {
-            // Защита от дублирования
             if (isProcessing) {
                 console.log('Уже обрабатывается');
                 return;
@@ -870,16 +870,12 @@
             sendBtn.disabled = true;
             input.disabled = true;
 
-            // Создаём чат если его нет
             if (!currentChatId || !chats[currentChatId]) {
                 currentChatId = createNewChat();
                 loadChat(currentChatId);
             }
 
-            // Добавляем сообщение пользователя
             addMessage(text, true);
-
-            // Показываем печать
             addTypingIndicator();
 
             try {
@@ -891,7 +887,6 @@
                 addMessage(`⚠️ Ошибка: ${error.message}`, false);
             }
 
-            // Разблокируем
             isProcessing = false;
             sendBtn.disabled = false;
             input.disabled = false;
@@ -935,7 +930,7 @@
                         'X-Title': 'Shark AI'
                     },
                     body: JSON.stringify({
-                        model: 'openai/gpt-4o-mini',
+                        model: 'deepseek/deepseek-v3',
                         messages: [
                             { role: 'system', content: 'Ты Shark AI — акула-помощник. Опиши что видишь на фото кратко.' },
                             { role: 'user', content: [
@@ -1064,15 +1059,13 @@
                 loadChat(chatIds[0]);
             }
 
-            // ===== ОБРАБОТЧИКИ =====
-            // Кнопка отправки — ПРЯМОЕ НАЗНАЧЕНИЕ
+            // Обработчики
             sendBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 console.log('Клик по sendBtn');
                 handleSend();
             });
 
-            // Enter
             input.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -1081,7 +1074,6 @@
                 }
             });
 
-            // Фишки
             document.querySelectorAll('.feature-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     input.value = this.dataset.text;
@@ -1089,7 +1081,6 @@
                 });
             });
 
-            // Фото
             attachBtn.addEventListener('click', () => fileInput.click());
             fileInput.addEventListener('change', (e) => {
                 if (e.target.files.length > 0) {
@@ -1098,7 +1089,6 @@
                 }
             });
 
-            // Сайдбар
             document.getElementById('sidebarToggle').addEventListener('click', openSidebar);
             document.getElementById('closeSidebar').addEventListener('click', closeSidebar);
             sidebarOverlay.addEventListener('click', (e) => {
@@ -1117,7 +1107,7 @@
                 closeSidebar();
             });
 
-            console.log('Shark AI готов к работе!');
+            console.log('🦈 Shark AI готов к работе! Модель: DeepSeek-V3');
         }
 
         // Запуск
