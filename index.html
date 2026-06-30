@@ -1,748 +1,1318 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Shark AI</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Shark AI — DeepSeek V4 Flash</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-html.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+    }
+    body {
+      background: #050505;
+      color: #d0d0d0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+      overflow: hidden;
+    }
+    .app {
+      display: flex;
+      width: 100%;
+      height: 100vh;
+      background: #0b0b0b;
+      overflow: hidden;
+      position: relative;
+    }
 
-        :root {
-            --bg: #0a0a0a;
-            --bg-secondary: #111;
-            --bg-input: #181818;
-            --text: #eee;
-            --hint: #404040;
-            --border: #262626;
-            --accent: #3a7a9a;
-            --button: #263a44;
-            --button-text: #d0e4f0;
-            --bubble-user: #1e2a30;
-            --bubble-bot: #181818;
-        }
+    /* ----- SIDEBAR (адаптивная) ----- */
+    .sidebar {
+      width: 280px;
+      background: #0d0d0d;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 16px;
+      border-right: 1px solid #1a1a1a;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+      z-index: 10;
+      overflow-y: auto;
+    }
+    .sidebar-header {
+      margin-bottom: 20px;
+    }
+    .sidebar-header .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .shark-icon {
+      width: 44px;
+      height: 44px;
+      filter: drop-shadow(0 0 6px rgba(0,0,0,0.8));
+    }
+    .sidebar-header h1 {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #eee, #aaa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+    .sidebar-header .version {
+      font-size: 11px;
+      color: #666;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-new-chat {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #ddd;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      margin-bottom: 20px;
+    }
+    .btn-new-chat:hover {
+      background: #2a2a2a;
+      border-color: #555;
+      transform: scale(1.02);
+    }
+    .btn-new-chat i {
+      color: #aaa;
+    }
+    .history-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #555;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .history-list::-webkit-scrollbar {
+      width: 4px;
+    }
+    .history-list::-webkit-scrollbar-track {
+      background: #111;
+    }
+    .history-list::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 8px;
+    }
+    .history-item {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: transparent;
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #999;
+      font-size: 14px;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    .history-item:hover {
+      background: #181818;
+      border-color: #2a2a2a;
+    }
+    .history-item.active {
+      background: #1a1a1a;
+      border-color: #555;
+      color: #eee;
+      box-shadow: inset 0 0 0 1px #444;
+    }
+    .history-item .chat-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: #181818;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #666;
+      flex-shrink: 0;
+    }
+    .history-item.active .chat-icon {
+      background: #333;
+      color: #eee;
+    }
+    .history-item .chat-title {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 400;
+    }
+    .history-item .chat-delete {
+      background: none;
+      border: none;
+      color: #444;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: 0.2s;
+      opacity: 0;
+    }
+    .history-item:hover .chat-delete {
+      opacity: 1;
+    }
+    .history-item .chat-delete:hover {
+      color: #ff6b6b;
+      background: rgba(255, 107, 107, 0.1);
+    }
 
-        body {
-            background: var(--bg);
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            height: 100dvh;
-            overflow: hidden;
-            color: var(--text);
-            padding: 0;
-            margin: 0;
-        }
+    /* ----- MAIN CHAT ----- */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #0a0a0a;
+      min-width: 0;
+      height: 100vh;
+    }
+    .chat-header {
+      padding: 12px 20px;
+      border-bottom: 1px solid #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0d0d0d;
+      flex-shrink: 0;
+      min-height: 56px;
+    }
+    .chat-header .chat-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #bbb;
+    }
+    .chat-header .chat-title i {
+      color: #888;
+    }
+    .chat-header .model-badge {
+      background: #181818;
+      padding: 4px 14px;
+      border-radius: 30px;
+      font-size: 11px;
+      color: #888;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #2a2a2a;
+      white-space: nowrap;
+    }
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+    .menu-toggle:hover {
+      color: #fff;
+    }
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 9;
+    }
 
-        .chat-app {
-            max-width: 420px;
-            width: 100%;
-            height: 100vh;
-            height: 100dvh;
-            background: var(--bg-secondary);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-behavior: smooth;
+    }
+    .messages::-webkit-scrollbar {
+      width: 5px;
+    }
+    .messages::-webkit-scrollbar-track {
+      background: #0d0d0d;
+    }
+    .messages::-webkit-scrollbar-thumb {
+      background: #2a2a2a;
+      border-radius: 8px;
+    }
+    .msg {
+      display: flex;
+      gap: 12px;
+      max-width: 90%;
+      animation: fadeIn 0.4s ease;
+    }
+    .msg.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+    .msg .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      background: #181818;
+      color: #777;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
+    .msg.user .avatar {
+      background: #2a2a2a;
+      color: #ddd;
+    }
+    .msg .bubble {
+      background: #141414;
+      padding: 14px 18px;
+      border-radius: 18px;
+      border-bottom-left-radius: 4px;
+      line-height: 1.6;
+      font-size: 15px;
+      word-break: break-word;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      position: relative;
+      border: 1px solid #1e1e1e;
+    }
+    .msg.user .bubble {
+      background: #1e1e1e;
+      border-bottom-left-radius: 18px;
+      border-bottom-right-radius: 4px;
+      border-color: #2a2a2a;
+    }
+    .msg .bubble p {
+      margin-bottom: 6px;
+    }
+    .msg .bubble p:last-child {
+      margin-bottom: 0;
+    }
+    .msg .copy-btn {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      background: rgba(255,255,255,0.06);
+      border: none;
+      color: #aaa;
+      font-size: 13px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 1;
+    }
+    .msg .copy-btn:hover {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+    }
+    .msg .copy-btn.copied {
+      color: #4caf50;
+    }
 
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
-        }
+    .code-block-wrapper {
+      margin: 10px 0 6px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+    }
+    .code-block-wrapper pre {
+      margin: 0;
+      padding: 12px 16px;
+      background: transparent;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .code-block-wrapper code {
+      font-family: 'Fira Code', 'JetBrains Mono', monospace;
+    }
+    .code-block-wrapper .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 14px;
+      background: #0d0d0d;
+      border-bottom: 1px solid #1a1a1a;
+      color: #888;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+    .code-block-wrapper .code-header .lang {
+      text-transform: uppercase;
+      color: #666;
+    }
+    .code-header .actions {
+      display: flex;
+      gap: 6px;
+    }
+    .code-header .actions button {
+      background: rgba(255,255,255,0.05);
+      border: none;
+      color: #aaa;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .code-header .actions button:hover {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+    }
+    .code-header .actions button.copied {
+      color: #4caf50;
+    }
+    .code-header .actions .preview-btn {
+      color: #4fc3f7;
+    }
+    .code-header .actions .preview-btn:hover {
+      color: #7fcfff;
+      background: rgba(79, 195, 247, 0.15);
+    }
 
-        .header .logo { display: flex; align-items: center; gap: 10px; }
-        .header .logo .shark { font-size: 26px; width: 40px; height: 40px; background: var(--bg-input); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-        .header .logo .title { font-size: 17px; font-weight: 700; }
-        .header .logo .title span { background: linear-gradient(135deg, #d0d0d0, #f5f5f5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .header .logo .sub { font-size: 9px; color: var(--hint); font-weight: 500; margin-top: -2px; }
+    .html-preview-container {
+      margin: 6px 0 2px;
+      border-radius: 8px;
+      border: 1px solid #2a2a2a;
+      overflow: hidden;
+      background: #0a0a0a;
+    }
+    .html-preview-container iframe {
+      width: 100%;
+      height: 200px;
+      border: none;
+      background: #fff;
+    }
+    .html-preview-container .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 12px;
+      background: #0d0d0d;
+      border-bottom: 1px solid #1a1a1a;
+      color: #666;
+      font-size: 11px;
+    }
+    .html-preview-container .preview-header button {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+    .html-preview-container .preview-header button:hover {
+      color: #ccc;
+      background: rgba(255,255,255,0.05);
+    }
 
-        .header .actions { display: flex; gap: 2px; align-items: center; }
-        .header .actions button { background: none; border: none; color: var(--hint); font-size: 16px; cursor: pointer; padding: 6px 8px; border-radius: 10px; transition: 0.2s; }
-        .header .actions button:hover { color: var(--text); background: var(--bg-input); }
+    .msg .bubble .timestamp {
+      font-size: 10px;
+      color: #444;
+      margin-top: 8px;
+      text-align: right;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-        .messages {
-            flex: 1;
-            padding: 10px 14px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            scrollbar-width: thin;
-            scrollbar-color: var(--border) transparent;
-        }
-        .messages::-webkit-scrollbar { width: 3px; }
-        .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+    .typing-indicator {
+      display: flex;
+      gap: 5px;
+      padding: 6px 0;
+    }
+    .typing-indicator span {
+      width: 8px;
+      height: 8px;
+      background: #555;
+      border-radius: 50%;
+      display: inline-block;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+      30% { transform: translateY(-8px); opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-        .msg { display: flex; gap: 8px; align-items: flex-start; animation: fadeIn 0.25s ease; max-width: 100%; }
-        @keyframes fadeIn { 0% { opacity: 0; transform: translateY(6px); } 100% { opacity: 1; transform: translateY(0); } }
+    .empty-chat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #555;
+      text-align: center;
+      gap: 12px;
+      padding: 30px;
+    }
+    .empty-chat .shark-big {
+      width: 80px;
+      height: 80px;
+      opacity: 0.2;
+      filter: grayscale(1);
+    }
+    .empty-chat h3 {
+      font-size: 20px;
+      font-weight: 400;
+      color: #666;
+    }
+    .empty-chat p {
+      font-size: 14px;
+      max-width: 280px;
+      color: #444;
+    }
 
-        .avatar { width: 30px; height: 30px; border-radius: 10px; background: var(--bg-input); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 17px; overflow: hidden; }
+    .input-area {
+      padding: 12px 16px 16px;
+      background: #0a0a0a;
+      border-top: 1px solid #1a1a1a;
+      flex-shrink: 0;
+    }
+    .input-wrapper {
+      display: flex;
+      gap: 10px;
+      background: #0d0d0d;
+      border-radius: 24px;
+      padding: 4px 4px 4px 18px;
+      border: 1px solid #2a2a2a;
+      transition: 0.3s;
+      align-items: flex-end;
+    }
+    .input-wrapper:focus-within {
+      border-color: #555;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.04);
+    }
+    .input-wrapper textarea {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 12px 0;
+      color: #ddd;
+      font-size: 15px;
+      resize: none;
+      outline: none;
+      max-height: 120px;
+      line-height: 1.5;
+      font-family: inherit;
+    }
+    .input-wrapper textarea::placeholder {
+      color: #444;
+    }
+    .input-wrapper .btn-send {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #aaa;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+      flex-shrink: 0;
+    }
+    .input-wrapper .btn-send:hover {
+      background: #2a2a2a;
+      border-color: #555;
+      color: #eee;
+    }
+    .input-wrapper .btn-send:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
 
-        .bubble {
-            background: var(--bubble-bot);
-            padding: 8px 14px;
-            border-radius: 14px 14px 14px 4px;
-            color: var(--text);
-            font-size: 13.5px;
-            line-height: 1.5;
-            max-width: 82%;
-            border: 1px solid var(--border);
-            word-break: break-word;
-        }
-        .bubble code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: monospace; color: var(--accent); }
-        .bubble pre { background: var(--bg); padding: 8px; border-radius: 8px; overflow-x: auto; margin: 6px 0; font-size: 12px; font-family: monospace; color: var(--text); border: 1px solid var(--border); }
-        .bubble img { max-width: 100%; border-radius: 8px; margin-top: 4px; }
+    @media (max-width: 768px) {
+      .app {
+        flex-direction: column;
+        border-radius: 0;
+      }
+      .menu-toggle {
+        display: block;
+      }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px;
+        transform: translateX(-100%);
+        border-right: 1px solid #1a1a1a;
+        z-index: 10;
+        background: #0d0d0d;
+        padding: 16px;
+        box-shadow: 4px 0 30px rgba(0,0,0,0.8);
+        transition: transform 0.3s ease;
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-overlay.active {
+        display: block;
+      }
+      .chat-header {
+        padding: 10px 14px;
+        min-height: 50px;
+      }
+      .chat-header .chat-title {
+        font-size: 15px;
+      }
+      .chat-header .model-badge {
+        font-size: 10px;
+        padding: 3px 10px;
+      }
+      .messages {
+        padding: 12px 14px 6px;
+        gap: 12px;
+      }
+      .msg {
+        max-width: 95%;
+        gap: 10px;
+      }
+      .msg .bubble {
+        padding: 12px 14px;
+        font-size: 14px;
+        border-radius: 16px;
+      }
+      .msg .copy-btn {
+        font-size: 12px;
+        padding: 2px 6px;
+        top: 4px;
+        right: 6px;
+      }
+      .code-block-wrapper pre {
+        font-size: 12px;
+        padding: 10px 12px;
+      }
+      .code-header .actions button {
+        font-size: 11px;
+        padding: 2px 8px;
+      }
+      .html-preview-container iframe {
+        height: 160px;
+      }
+      .input-area {
+        padding: 8px 12px 12px;
+      }
+      .input-wrapper {
+        padding: 2px 2px 2px 14px;
+        border-radius: 20px;
+      }
+      .input-wrapper textarea {
+        font-size: 14px;
+        padding: 10px 0;
+        max-height: 100px;
+      }
+      .input-wrapper .btn-send {
+        width: 42px;
+        height: 42px;
+        font-size: 16px;
+      }
+      .empty-chat h3 {
+        font-size: 18px;
+      }
+      .empty-chat .shark-big {
+        width: 64px;
+        height: 64px;
+      }
+    }
 
-        .msg.user { flex-direction: row-reverse; }
-        .msg.user .bubble { background: var(--bubble-user); border-radius: 14px 14px 4px 14px; color: var(--button-text); }
+    @media (max-width: 480px) {
+      .sidebar {
+        width: 260px;
+      }
+      .chat-header .model-badge {
+        display: none;
+      }
+      .msg .bubble {
+        font-size: 13px;
+        padding: 10px 12px;
+      }
+      .code-block-wrapper pre {
+        font-size: 11px;
+        padding: 8px 10px;
+      }
+    }
 
-        .time { font-size: 9px; color: var(--hint); margin-top: 3px; opacity: 0.5; display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
-
-        .copy-btn { background: none; border: none; color: var(--hint); font-size: 12px; cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: 0.2s; opacity: 0.5; }
-        .copy-btn:hover { background: var(--bg-input); opacity: 1; color: var(--text); }
-
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            min-height: 180px;
-            color: var(--hint);
-            text-align: center;
-            gap: 6px;
-        }
-        .empty-state .big-shark { font-size: 44px; opacity: 0.3; }
-        .empty-state p { font-size: 13px; color: var(--hint); font-weight: 500; }
-        .empty-state span { font-size: 11px; color: var(--hint); opacity: 0.5; }
-
-        .input-area {
-            padding: 6px 14px 12px 14px;
-            background: var(--bg-secondary);
-            flex-shrink: 0;
-            padding-bottom: env(safe-area-inset-bottom, 12px);
-        }
-
-        .input-wrap {
-            background: var(--bg-input);
-            border-radius: 40px;
-            display: flex;
-            align-items: center;
-            padding: 3px 3px 3px 14px;
-            border: 1px solid var(--border);
-            transition: 0.15s;
-        }
-        .input-wrap:focus-within { border-color: var(--accent); }
-
-        .input-wrap input {
-            background: transparent;
-            border: none;
-            color: var(--text);
-            font-size: 13.5px;
-            padding: 9px 0;
-            flex: 1;
-            outline: none;
-            font-family: 'Inter', sans-serif;
-            min-width: 0;
-        }
-        .input-wrap input::placeholder { color: var(--hint); }
-
-        .input-wrap button {
-            background: transparent;
-            border: none;
-            color: var(--hint);
-            width: 36px;
-            height: 36px;
-            border-radius: 30px;
-            font-size: 15px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.2s;
-            flex-shrink: 0;
-        }
-        .input-wrap button:hover { background: rgba(255, 255, 255, 0.05); }
-        .input-wrap .send { background: var(--button); color: var(--button-text); width: 40px; height: 40px; font-size: 17px; }
-        .input-wrap .send:hover { opacity: 0.85; }
-        .input-wrap .send:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        .file-input { display: none; }
-
-        .suggestions {
-            display: flex;
-            gap: 6px;
-            padding: 6px 0 2px 0;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .suggestion-btn {
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: 30px;
-            padding: 4px 12px;
-            color: var(--hint);
-            font-size: 10.5px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: 'Inter', sans-serif;
-        }
-        .suggestion-btn:hover { border-color: var(--accent); color: var(--text); }
-
-        .water { text-align: center; font-size: 8px; color: var(--hint); padding-top: 3px; letter-spacing: 1.5px; opacity: 0.3; }
-
-        .typing { display: flex; gap: 4px; padding: 4px 0; }
-        .typing span { width: 6px; height: 6px; background: var(--accent); border-radius: 10px; animation: pulse 1.4s infinite; }
-        .typing span:nth-child(2) { animation-delay: 0.2s; }
-        .typing span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.2); } }
-
-        .sidebar-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
-            display: none;
-            justify-content: flex-start;
-        }
-        .sidebar-overlay.open { display: flex; }
-
-        .sidebar {
-            width: 280px;
-            max-width: 80%;
-            height: 100%;
-            background: var(--bg-secondary);
-            padding: 16px 14px;
-            overflow-y: auto;
-            border-right: 1px solid var(--border);
-            animation: slideIn 0.25s ease;
-        }
-        @keyframes slideIn { 0% { transform: translateX(-100%); } 100% { transform: translateX(0); } }
-
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-        .sidebar-header h3 { color: var(--text); font-size: 16px; font-weight: 600; }
-        .sidebar-header button { background: none; border: none; color: var(--hint); font-size: 18px; cursor: pointer; transition: 0.2s; }
-        .sidebar-header button:hover { color: var(--text); }
-
-        .chat-list-item {
-            padding: 8px 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-bottom: 2px;
-            border: 1px solid transparent;
-        }
-        .chat-list-item:hover { background: var(--bg-input); border-color: var(--border); }
-        .chat-list-item.active { background: var(--button); border-color: var(--accent); }
-        .chat-list-item .chat-title { color: var(--text); font-size: 12.5px; font-weight: 500; }
-        .chat-list-item .chat-preview { color: var(--hint); font-size: 10.5px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .chat-list-item .chat-time { color: var(--hint); font-size: 9px; margin-top: 2px; opacity: 0.5; }
-        .chat-list-item .chat-delete { float: right; color: var(--hint); background: none; border: none; cursor: pointer; font-size: 12px; padding: 2px 6px; border-radius: 6px; transition: 0.2s; }
-        .chat-list-item .chat-delete:hover { color: #aa4444; background: rgba(170, 68, 68, 0.1); }
-
-        .new-chat-btn {
-            width: 100%;
-            padding: 8px;
-            background: var(--button);
-            border: 1px solid var(--accent);
-            border-radius: 10px;
-            color: var(--button-text);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin-bottom: 10px;
-        }
-        .new-chat-btn:hover { opacity: 0.85; }
-
-        .empty-chats { color: var(--hint); text-align: center; padding: 20px 0; font-size: 12px; opacity: 0.5; }
-
-        .light-theme {
-            --bg: #f0f0f0;
-            --bg-secondary: #ffffff;
-            --bg-input: #e8e8e8;
-            --text: #1a1a1a;
-            --hint: #888;
-            --border: #d0d0d0;
-            --accent: #3a7a9a;
-            --button: #d0e4f0;
-            --button-text: #1a2a30;
-            --bubble-user: #d0e4f0;
-            --bubble-bot: #f5f5f5;
-        }
-
-        @media (max-width: 420px) {
-            .header .logo .title { font-size: 15px; }
-            .header .logo .shark { font-size: 22px; width: 36px; height: 36px; }
-            .bubble { font-size: 12.5px; padding: 6px 12px; }
-        }
-
-        @media (min-width: 421px) {
-            .chat-app {
-                border-radius: 32px;
-                height: 95vh;
-                height: 95dvh;
-                box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.02);
-            }
-            body { padding: 16px; }
-        }
-
-        @media (max-width: 420px) {
-            .chat-app { border-radius: 0; height: 100vh; height: 100dvh; }
-            body { padding: 0; }
-        }
-    </style>
+    @media (min-width: 769px) {
+      .sidebar {
+        transform: translateX(0) !important;
+      }
+      .sidebar-overlay {
+        display: none !important;
+      }
+      .menu-toggle {
+        display: none;
+      }
+    }
+  </style>
 </head>
 <body>
+<div class="app" id="app">
+  <!-- Overlay для мобильных -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <div class="chat-app" id="app">
-        <div class="header">
-            <div class="logo">
-                <div class="shark">🦈</div>
-                <div>
-                    <div class="title"><span>Shark AI</span></div>
-                    <div class="sub">акула</div>
-                </div>
-            </div>
-            <div class="actions">
-                <button id="themeToggle" title="Сменить тему"><i class="fas fa-moon"></i></button>
-                <button id="sidebarToggle" title="История"><i class="fas fa-history"></i></button>
-                <button id="newChatBtn" title="Новый чат"><i class="fas fa-plus"></i></button>
-            </div>
-        </div>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <!-- НОВАЯ SVG-АКУЛА (заменена) -->
+        <svg class="shark-icon" viewBox="0 0 598.307 598.306" xmlns="http://www.w3.org/2000/svg">
+          <path d="M555.577,298.811c-12.493-11.028-22.102-24.403-30.311-38.797c-0.71-1.24-0.489-3.309-0.094-4.839
+            c7.278-27.997,14.663-55.965,21.979-83.954c0.845-3.219,1.433-6.503,2.138-9.755c-0.289-0.208-0.579-0.416-0.864-0.624
+            c-5.541,6.654-11.245,13.183-16.594,19.988c-18.829,23.95-37.148,48.279-53.815,73.807c-1.072,1.641-2.284,1.587-3.859,1.416
+            c-32.591-3.521-65.187-6.973-97.773-10.519c-29.168-3.174-58.319-6.467-87.488-9.669c-10.738-1.179-17.368-6.748-18.597-17.487
+            c-0.91-7.972-0.184-16.124-0.277-24.194c-0.061-5.333-0.273-10.665-0.461-15.994c-0.016-0.465-0.359-0.922-0.677-1.668
+            c-7.217,1.358-13.595,4.431-19.376,8.829c-7.058,5.373-12.113,12.415-16.5,20.008c-2.636,4.553-5.227,9.135-7.96,13.631
+            c-2.036,3.346-4.835,4.452-9.049,4.606c-19.294,0.702-38.601,1.652-57.838,3.28c-12.579,1.061-25.055,3.399-37.561,5.247
+            c-0.396,0.057-0.787,0.139-1.183,0.224c-1.032,0.123-2.06,0.249-3.093,0.372c-3.402,0.408-6.209,1.077-8.719,3.623
+            c-0.123,0.126-0.237,0.257-0.351,0.388c-10.881-2.681-22.599-1.922-33.199,1.86c-5.765,0.665-11.518,1.706-17.246,3.068
+            c-15.051,3.574-29.911,7.98-44.807,12.174c-4.562,1.285-8.556,3.652-11.11,7.919c-1.159,1.938-1.314,3.68,0.286,5.524
+            c1.787,2.064,3.26,4.398,5.083,6.422c2.762,3.064,4.965,6.312,5.459,10.559c0.11,0.955,0.836,2.305,1.636,2.647
+            c10.012,4.301,17.781,11.832,26.467,18.059c27.422,19.641,58.267,30.506,91.515,34.921c2.819,0.375,3.758,1.456,4.451,4.084
+            c7.001,26.598,16.846,52.008,33.13,74.423c3.864,5.316,8.976,9.841,14.015,14.138c2.631,2.244,6.361,3.202,10,4.937
+            c-0.253-6.907-0.722-12.926-0.645-18.932c0.286-22.627,2.371-45.06,8.433-66.961c0.996-3.582,2.526-7.042,4.104-10.42
+            c0.412-0.881,1.91-1.701,2.962-1.774c25.022-1.751,50.062-3.338,75.08-5.137c3.007-0.217,4.933,0.379,6.96,2.754
+            c9.176,10.734,19.303,20.489,31.417,27.915c3.158,1.934,6.728,3.215,10.159,4.688c2.37,1.017,3.664,0.348,4.639-2.337
+            c4.46-12.265,9.16-24.443,13.881-36.61c0.901-2.33,2.288-4.468,3.549-6.879c13.786,5.03,27.512,7.964,42.551,3.831
+            c-3.158-2.627-6.508-4.847-9.898-6.924c-0.506-0.93-1.403-1.681-2.766-2.007c-0.327-0.078-0.653-0.155-0.979-0.237
+            c-5.643-3.325-11.236-6.512-16.092-10.75c0.086-0.294,0.176-0.584,0.266-0.878c1.827-0.334,3.659-0.632,5.479-1.008
+            c19.792-4.051,38.906-10.412,57.842-17.282c13.505-4.896,26.749-10.498,40.2-15.533c1.86-0.698,4.569-0.612,6.349,0.241
+            c5.182,2.472,10.281,5.227,15.063,8.4c11.465,7.605,22.55,15.79,34.121,23.224c11.396,7.319,23.685,12.774,37.242,14.852
+            c11.375,1.742,22.391,0.521,32.999-4.011c0.873-0.376,1.689-0.886,2.456-1.502C581.02,317.277,567.702,309.516,555.577,298.811z"/>
+        </svg>
+        <h1>Shark AI</h1>
+      </div>
+      <div class="version"><i class="fas fa-bolt"></i> DeepSeek V4 Flash</div>
+    </div>
+    <button class="btn-new-chat" id="newChatBtn">
+      <i class="fas fa-plus-circle"></i> Новый чат
+    </button>
+    <div class="history-label"><i class="fas fa-clock-rotate-left"></i> История</div>
+    <div class="history-list" id="historyList"></div>
+  </aside>
 
-        <div class="messages" id="messages">
-            <div class="empty-state" id="emptyState">
-                <div class="big-shark">🦈</div>
-                <p>Напишите что-нибудь</p>
-                <span>Shark AI ответит</span>
-            </div>
-        </div>
+  <!-- Main -->
+  <main class="main">
+    <header class="chat-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <button class="menu-toggle" id="menuToggle" aria-label="Меню">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="chat-title"><i class="fas fa-comment-dots"></i> <span id="currentChatTitle">Новый чат</span></div>
+      </div>
+      <div class="model-badge"><i class="fas fa-microchip"></i> DeepSeek V4 Flash</div>
+    </header>
 
-        <div class="input-area">
-            <div class="input-wrap">
-                <input type="text" id="input" placeholder="Спроси Shark AI..." autocomplete="off" />
-                <button id="fileBtn"><i class="fas fa-paperclip"></i></button>
-                <button class="send" id="sendBtn"><i class="fas fa-arrow-up"></i></button>
-            </div>
-
-            <div class="suggestions" id="suggestions">
-                <button class="suggestion-btn" data-text="Напиши код для калькулятора">💻 Код</button>
-                <button class="suggestion-btn" data-text="Что нового в мире ИИ?">🌐 Новости</button>
-                <button class="suggestion-btn" data-text="Помоги с английским переводом">📝 Перевод</button>
-                <button class="suggestion-btn" data-text="Расскажи анекдот">😂 Анекдот</button>
-            </div>
-
-            <div class="water">SHARK AI</div>
-        </div>
-
-        <input type="file" id="fileInput" class="file-input" accept=".pdf,.txt,.docx,text/plain" multiple />
+    <div class="messages" id="messagesContainer">
+      <div class="empty-chat" id="emptyState">
+        <!-- НОВАЯ SVG-АКУЛА (уменьшенная копия) -->
+        <svg class="shark-big" viewBox="0 0 598.307 598.306" xmlns="http://www.w3.org/2000/svg">
+          <path d="M555.577,298.811c-12.493-11.028-22.102-24.403-30.311-38.797c-0.71-1.24-0.489-3.309-0.094-4.839
+            c7.278-27.997,14.663-55.965,21.979-83.954c0.845-3.219,1.433-6.503,2.138-9.755c-0.289-0.208-0.579-0.416-0.864-0.624
+            c-5.541,6.654-11.245,13.183-16.594,19.988c-18.829,23.95-37.148,48.279-53.815,73.807c-1.072,1.641-2.284,1.587-3.859,1.416
+            c-32.591-3.521-65.187-6.973-97.773-10.519c-29.168-3.174-58.319-6.467-87.488-9.669c-10.738-1.179-17.368-6.748-18.597-17.487
+            c-0.91-7.972-0.184-16.124-0.277-24.194c-0.061-5.333-0.273-10.665-0.461-15.994c-0.016-0.465-0.359-0.922-0.677-1.668
+            c-7.217,1.358-13.595,4.431-19.376,8.829c-7.058,5.373-12.113,12.415-16.5,20.008c-2.636,4.553-5.227,9.135-7.96,13.631
+            c-2.036,3.346-4.835,4.452-9.049,4.606c-19.294,0.702-38.601,1.652-57.838,3.28c-12.579,1.061-25.055,3.399-37.561,5.247
+            c-0.396,0.057-0.787,0.139-1.183,0.224c-1.032,0.123-2.06,0.249-3.093,0.372c-3.402,0.408-6.209,1.077-8.719,3.623
+            c-0.123,0.126-0.237,0.257-0.351,0.388c-10.881-2.681-22.599-1.922-33.199,1.86c-5.765,0.665-11.518,1.706-17.246,3.068
+            c-15.051,3.574-29.911,7.98-44.807,12.174c-4.562,1.285-8.556,3.652-11.11,7.919c-1.159,1.938-1.314,3.68,0.286,5.524
+            c1.787,2.064,3.26,4.398,5.083,6.422c2.762,3.064,4.965,6.312,5.459,10.559c0.11,0.955,0.836,2.305,1.636,2.647
+            c10.012,4.301,17.781,11.832,26.467,18.059c27.422,19.641,58.267,30.506,91.515,34.921c2.819,0.375,3.758,1.456,4.451,4.084
+            c7.001,26.598,16.846,52.008,33.13,74.423c3.864,5.316,8.976,9.841,14.015,14.138c2.631,2.244,6.361,3.202,10,4.937
+            c-0.253-6.907-0.722-12.926-0.645-18.932c0.286-22.627,2.371-45.06,8.433-66.961c0.996-3.582,2.526-7.042,4.104-10.42
+            c0.412-0.881,1.91-1.701,2.962-1.774c25.022-1.751,50.062-3.338,75.08-5.137c3.007-0.217,4.933,0.379,6.96,2.754
+            c9.176,10.734,19.303,20.489,31.417,27.915c3.158,1.934,6.728,3.215,10.159,4.688c2.37,1.017,3.664,0.348,4.639-2.337
+            c4.46-12.265,9.16-24.443,13.881-36.61c0.901-2.33,2.288-4.468,3.549-6.879c13.786,5.03,27.512,7.964,42.551,3.831
+            c-3.158-2.627-6.508-4.847-9.898-6.924c-0.506-0.93-1.403-1.681-2.766-2.007c-0.327-0.078-0.653-0.155-0.979-0.237
+            c-5.643-3.325-11.236-6.512-16.092-10.75c0.086-0.294,0.176-0.584,0.266-0.878c1.827-0.334,3.659-0.632,5.479-1.008
+            c19.792-4.051,38.906-10.412,57.842-17.282c13.505-4.896,26.749-10.498,40.2-15.533c1.86-0.698,4.569-0.612,6.349,0.241
+            c5.182,2.472,10.281,5.227,15.063,8.4c11.465,7.605,22.55,15.79,34.121,23.224c11.396,7.319,23.685,12.774,37.242,14.852
+            c11.375,1.742,22.391,0.521,32.999-4.011c0.873-0.376,1.689-0.886,2.456-1.502C581.02,317.277,567.702,309.516,555.577,298.811z"/>
+        </svg>
+        <h3>Начните диалог</h3>
+        <p>Задайте вопрос или напишите что‑нибудь, чтобы начать общение с Shark AI.</p>
+      </div>
     </div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay">
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h3><i class="fas fa-history" style="color:var(--accent); margin-right:6px;"></i>История</h3>
-                <button id="closeSidebar"><i class="fas fa-times"></i></button>
-            </div>
-            <button class="new-chat-btn" id="newChatFromSidebar"><i class="fas fa-plus"></i> Новый чат</button>
-            <div id="chatList"></div>
-        </div>
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea id="messageInput" rows="1" placeholder="Введите сообщение…" maxlength="4000"></textarea>
+        <button class="btn-send" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+      </div>
     </div>
+  </main>
+</div>
 
-    <script>
-        // ===== API =====
-        const API_KEY = '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';
-        const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-        const MODEL = 'deepseek/deepseek-chat';
+<script>
+  (function() {
+    'use strict';
 
-        // ===== DOM =====
-        const messagesContainer = document.getElementById('messages');
-        const emptyState = document.getElementById('emptyState');
-        const input = document.getElementById('input');
-        const sendBtn = document.getElementById('sendBtn');
-        const fileInput = document.getElementById('fileInput');
-        const fileBtn = document.getElementById('fileBtn');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const chatList = document.getElementById('chatList');
-        const themeToggle = document.getElementById('themeToggle');
+    const API_KEY = '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';
+    const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+    const MODEL = 'deepseek/deepseek-chat';
 
-        let currentChatId = null;
-        let chats = {};
-        let isProcessing = false;
+    let chats = [];
+    let currentChatId = null;
+    let isProcessing = false;
 
-        // ===== ТЕМА =====
-        function toggleTheme() {
-            document.body.classList.toggle('light-theme');
-            const icon = themeToggle.querySelector('i');
-            icon.className = document.body.classList.contains('light-theme') ? 'fas fa-sun' : 'fas fa-moon';
-            localStorage.setItem('sharkAI_theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+    // DOM
+    const historyList = document.getElementById('historyList');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const emptyState = document.getElementById('emptyState');
+    const currentChatTitle = document.getElementById('currentChatTitle');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    // ---------- МОБИЛЬНОЕ МЕНЮ ----------
+    function toggleSidebar() {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('active');
+    }
+    menuToggle.addEventListener('click', toggleSidebar);
+    overlay.addEventListener('click', toggleSidebar);
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth <= 768) {
+        const target = e.target.closest('.history-item');
+        if (target) {
+          sidebar.classList.remove('open');
+          overlay.classList.remove('active');
         }
+      }
+    });
 
-        function loadTheme() {
-            if (localStorage.getItem('sharkAI_theme') === 'light') {
-                document.body.classList.add('light-theme');
-                themeToggle.querySelector('i').className = 'fas fa-sun';
-            }
+    // ---------- УНИВЕРСАЛЬНОЕ КОПИРОВАНИЕ ----------
+    function copyToClipboard(text, buttonElement, successMessage = 'Скопировано!') {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showCopiedFeedback(buttonElement, successMessage);
+        }).catch(() => {
+          fallbackCopy(text, buttonElement, successMessage);
+        });
+      } else {
+        fallbackCopy(text, buttonElement, successMessage);
+      }
+    }
+
+    function fallbackCopy(text, buttonElement, successMessage) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          showCopiedFeedback(buttonElement, successMessage);
+        } else {
+          alert('Не удалось скопировать текст. Попробуйте вручную.');
         }
-        themeToggle.addEventListener('click', toggleTheme);
+      } catch (err) {
+        alert('Ошибка копирования: ' + err);
+      }
+      document.body.removeChild(textarea);
+    }
 
-        // ===== ЧАТЫ =====
-        function loadAllChats() {
-            try {
-                const saved = localStorage.getItem('sharkAI_chats');
-                chats = saved ? JSON.parse(saved) : {};
-            } catch (e) { chats = {}; }
+    function showCopiedFeedback(buttonElement, message) {
+      const originalHtml = buttonElement.innerHTML;
+      buttonElement.innerHTML = `<i class="fas fa-check"></i> ${message}`;
+      buttonElement.classList.add('copied');
+      setTimeout(() => {
+        buttonElement.innerHTML = originalHtml;
+        buttonElement.classList.remove('copied');
+      }, 2000);
+    }
+
+    // ---------- HELPERS ----------
+    function generateId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+    function getCurrentChat() { return chats.find(c => c.id === currentChatId) || null; }
+    function saveToStorage() {
+      try {
+        localStorage.setItem('shark_ai_chats', JSON.stringify(chats));
+        localStorage.setItem('shark_ai_current', currentChatId || '');
+      } catch(e) {}
+    }
+    function loadFromStorage() {
+      try {
+        const stored = localStorage.getItem('shark_ai_chats');
+        if (stored) chats = JSON.parse(stored);
+        const curr = localStorage.getItem('shark_ai_current');
+        if (curr && chats.some(c => c.id === curr)) currentChatId = curr;
+      } catch(e) { chats = []; }
+      if (!chats.length) createNewChat();
+      else if (!currentChatId) currentChatId = chats[0].id;
+    }
+
+    function createNewChat(title) {
+      const newChat = { id: generateId(), title: title || 'Новый чат', messages: [] };
+      chats.unshift(newChat);
+      currentChatId = newChat.id;
+      renderSidebar();
+      renderMessages();
+      saveToStorage();
+      return newChat;
+    }
+
+    function deleteChat(id) {
+      if (chats.length <= 1) {
+        const chat = chats.find(c => c.id === id);
+        if (chat) { chat.messages = []; chat.title = 'Новый чат'; if (currentChatId === id) { renderMessages(); renderSidebar(); saveToStorage(); } }
+        return;
+      }
+      const index = chats.findIndex(c => c.id === id);
+      if (index === -1) return;
+      chats.splice(index, 1);
+      if (currentChatId === id) {
+        currentChatId = chats[0]?.id || null;
+        if (!currentChatId) createNewChat();
+      }
+      renderSidebar();
+      renderMessages();
+      saveToStorage();
+    }
+
+    function switchChat(id) {
+      if (id === currentChatId) return;
+      const chat = chats.find(c => c.id === id);
+      if (!chat) return;
+      currentChatId = id;
+      renderSidebar();
+      renderMessages();
+      saveToStorage();
+    }
+
+    function renderSidebar() {
+      historyList.innerHTML = '';
+      chats.forEach(chat => {
+        const item = document.createElement('div');
+        item.className = 'history-item' + (chat.id === currentChatId ? ' active' : '');
+        const firstMsg = chat.messages.length ? chat.messages[0].content : '';
+        const title = chat.title !== 'Новый чат' ? chat.title : (firstMsg ? firstMsg.slice(0,30)+'…' : 'Новый чат');
+        item.innerHTML = `
+          <div class="chat-icon"><i class="fas fa-comment"></i></div>
+          <span class="chat-title">${escapeHtml(title)}</span>
+          <button class="chat-delete" data-id="${chat.id}"><i class="fas fa-trash-can"></i></button>
+        `;
+        item.addEventListener('click', (e) => {
+          if (e.target.closest('.chat-delete')) return;
+          switchChat(chat.id);
+        });
+        item.querySelector('.chat-delete').addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (confirm('Удалить этот чат?')) deleteChat(chat.id);
+        });
+        historyList.appendChild(item);
+      });
+      const cur = getCurrentChat();
+      if (cur) {
+        const first = cur.messages.length ? cur.messages[0].content : '';
+        currentChatTitle.textContent = cur.title !== 'Новый чат' ? cur.title : (first ? first.slice(0,40)+'…' : 'Новый чат');
+      } else {
+        currentChatTitle.textContent = 'Чат';
+      }
+    }
+
+    // ---------- ПАРСИНГ БЛОКОВ КОДА ----------
+    function parseCodeBlocks(text) {
+      const regex = /```(\w*)\s*([\s\S]*?)```/g;
+      const parts = [];
+      let lastIndex = 0, match;
+      while ((match = regex.exec(text)) !== null) {
+        if (match.index > lastIndex) parts.push({ type: 'text', content: text.substring(lastIndex, match.index) });
+        const lang = match[1] || 'plaintext';
+        const code = match[2].trim();
+        parts.push({ type: 'code', lang, code });
+        lastIndex = match.index + match[0].length;
+      }
+      if (lastIndex < text.length) parts.push({ type: 'text', content: text.substring(lastIndex) });
+      return parts;
+    }
+
+    function createCodeBlock(lang, code) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'code-block-wrapper';
+      const header = document.createElement('div');
+      header.className = 'code-header';
+      const langSpan = document.createElement('span');
+      langSpan.className = 'lang';
+      langSpan.textContent = lang || 'plaintext';
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+
+      const copyBtn = document.createElement('button');
+      copyBtn.innerHTML = '<i class="fas fa-copy"></i> Копировать';
+      copyBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        copyToClipboard(code, copyBtn, 'Скопировано!');
+      });
+      actions.appendChild(copyBtn);
+
+      if (lang.toLowerCase() === 'html') {
+        const previewBtn = document.createElement('button');
+        previewBtn.className = 'preview-btn';
+        previewBtn.innerHTML = '<i class="fas fa-eye"></i> Preview';
+        previewBtn.addEventListener('click', () => {
+          const existingPreview = wrapper.querySelector('.html-preview-container');
+          if (existingPreview) { existingPreview.remove(); return; }
+          const container = document.createElement('div');
+          container.className = 'html-preview-container';
+          const headerPreview = document.createElement('div');
+          headerPreview.className = 'preview-header';
+          headerPreview.innerHTML = `<span>HTML Preview</span><button id="closePreviewBtn"><i class="fas fa-times"></i></button>`;
+          const iframe = document.createElement('iframe');
+          iframe.src = 'data:text/html;charset=utf-8,' + encodeURIComponent(code);
+          container.appendChild(headerPreview);
+          container.appendChild(iframe);
+          wrapper.appendChild(container);
+          headerPreview.querySelector('#closePreviewBtn').addEventListener('click', () => { container.remove(); });
+        });
+        actions.appendChild(previewBtn);
+      }
+
+      header.appendChild(langSpan);
+      header.appendChild(actions);
+      wrapper.appendChild(header);
+      const pre = document.createElement('pre');
+      const codeEl = document.createElement('code');
+      codeEl.className = `language-${lang}`;
+      codeEl.textContent = code;
+      pre.appendChild(codeEl);
+      wrapper.appendChild(pre);
+      return wrapper;
+    }
+
+    // ---------- СОЗДАНИЕ ЭЛЕМЕНТА СООБЩЕНИЯ ----------
+    function buildMessageElement(role, content) {
+      const div = document.createElement('div');
+      div.className = `msg ${role === 'user' ? 'user' : 'assistant'}`;
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.innerHTML = role === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'copy-btn';
+      copyBtn.innerHTML = '<i class="fas fa-copy"></i> Копировать';
+      copyBtn.title = 'Копировать текст';
+      copyBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        copyToClipboard(content, copyBtn, 'Скопировано!');
+      });
+      bubble.appendChild(copyBtn);
+
+      const parts = parseCodeBlocks(content);
+      parts.forEach(part => {
+        if (part.type === 'text' && part.content.trim()) {
+          const p = document.createElement('p');
+          p.textContent = part.content;
+          bubble.appendChild(p);
+        } else if (part.type === 'code') {
+          const block = createCodeBlock(part.lang, part.code);
+          bubble.appendChild(block);
         }
+      });
 
-        function saveAllChats() {
-            try { localStorage.setItem('sharkAI_chats', JSON.stringify(chats)); } catch (e) {}
-        }
+      const ts = document.createElement('div');
+      ts.className = 'timestamp';
+      ts.innerHTML = `<span>${new Date().toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' })}</span>`;
+      bubble.appendChild(ts);
 
-        function createNewChat() {
-            const id = 'chat_' + Date.now();
-            chats[id] = { id, title: 'Новый чат', messages: [], created: new Date().toISOString(), updated: new Date().toISOString() };
-            saveAllChats();
-            return id;
-        }
+      div.appendChild(avatar);
+      div.appendChild(bubble);
+      return div;
+    }
 
-        function loadChat(chatId) {
-            if (!chats[chatId]) chatId = createNewChat();
-            currentChatId = chatId;
-            const chat = chats[chatId];
+    function renderMessages() {
+      const chat = getCurrentChat();
+      Array.from(messagesContainer.children).forEach(el => { if (el.id !== 'emptyState') el.remove(); });
+      if (!chat || !chat.messages.length) {
+        emptyState.style.display = 'flex';
+        return;
+      }
+      emptyState.style.display = 'none';
+      chat.messages.forEach(msg => {
+        const el = buildMessageElement(msg.role, msg.content);
+        messagesContainer.appendChild(el);
+      });
+      Prism.highlightAllUnder(messagesContainer);
+      scrollToBottom();
+    }
 
-            messagesContainer.innerHTML = '';
-            if (chat.messages.length === 0) {
-                messagesContainer.appendChild(emptyState);
-                emptyState.style.display = 'flex';
-            } else {
-                emptyState.style.display = 'none';
-                chat.messages.forEach(msg => addMessageToUI(msg.text, msg.isUser, msg.image));
-            }
-            updateChatList();
-            input.focus();
-        }
+    function addMessage(role, content) {
+      const chat = getCurrentChat();
+      if (!chat) return;
+      chat.messages.push({ role, content });
+      if (chat.messages.length === 1 && role === 'user') {
+        chat.title = content.slice(0,40) + (content.length>40 ? '…' : '');
+      }
+      renderMessages();
+      renderSidebar();
+      saveToStorage();
+    }
 
-        function addMessageToUI(text, isUser, image = null) {
-            if (emptyState) emptyState.style.display = 'none';
+    function scrollToBottom() {
+      setTimeout(() => { messagesContainer.scrollTop = messagesContainer.scrollHeight; }, 50);
+    }
 
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `msg ${isUser ? 'user' : ''}`;
+    function escapeHtml(unsafe) {
+      return unsafe.replace(/[&<>"]/g, m => {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        if (m === '"') return '&quot;';
+        return m;
+      });
+    }
 
-            const avatar = document.createElement('div');
-            avatar.className = 'avatar';
-            avatar.innerHTML = isUser ? '<i class="fas fa-user" style="font-size:14px; color:var(--hint);"></i>' : '🦈';
+    // ---------- БЫСТРЫЙ ПОСТЕПЕННЫЙ ВЫВОД ----------
+    function typeTextIntoBubble(bubble, fullText, callback) {
+      let index = 0;
+      const chunkSize = 5;
+      const delay = 2;
 
-            const bubble = document.createElement('div');
-            bubble.className = 'bubble';
-
-            let content = text;
-            if (image) content += `<br><img src="${image}" alt="photo" />`;
-            content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
-            content = content.replace(/```([\s\S]*?)```/g, '<pre>$1</pre>');
-            content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            content = content.replace(/\n/g, '<br />');
-            bubble.innerHTML = content;
-
-            const time = document.createElement('div');
-            time.className = 'time';
-            const now = new Date();
-            time.textContent = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-
-            if (!isUser) {
-                const copyBtn = document.createElement('button');
-                copyBtn.className = 'copy-btn';
-                copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
-                copyBtn.title = 'Копировать ответ';
-                copyBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(text).then(() => {
-                        this.innerHTML = '✅';
-                        setTimeout(() => { this.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
-                    });
-                });
-                time.appendChild(copyBtn);
-            }
-
-            bubble.appendChild(time);
-            msgDiv.appendChild(avatar);
-            msgDiv.appendChild(bubble);
-            messagesContainer.appendChild(msgDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        function addMessage(text, isUser, image = null) {
-            addMessageToUI(text, isUser, image);
-            if (currentChatId && chats[currentChatId]) {
-                const chat = chats[currentChatId];
-                chat.messages.push({ text, isUser, image, time: new Date().toISOString() });
-                chat.updated = new Date().toISOString();
-                if (isUser && chat.title === 'Новый чат' && text.length > 0) {
-                    chat.title = text.slice(0, 30) + (text.length > 30 ? '...' : '');
-                }
-                saveAllChats();
-                updateChatList();
-            }
-        }
-
-        function addTypingIndicator() {
-            const existing = document.getElementById('typingIndicator');
-            if (existing) existing.remove();
-
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'msg';
-            msgDiv.id = 'typingIndicator';
-
-            const avatar = document.createElement('div');
-            avatar.className = 'avatar';
-            avatar.textContent = '🦈';
-
-            const bubble = document.createElement('div');
-            bubble.className = 'bubble';
-            bubble.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
-
-            msgDiv.appendChild(avatar);
-            msgDiv.appendChild(bubble);
-            messagesContainer.appendChild(msgDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        function removeTypingIndicator() {
-            const indicator = document.getElementById('typingIndicator');
-            if (indicator) indicator.remove();
-        }
-
-        // ===== API =====
-        async function sendToAI(message) {
-            try {
-                const history = (chats[currentChatId]?.messages || [])
-                    .filter(m => !m.image)
-                    .slice(-20)
-                    .map(m => ({ role: m.isUser ? 'user' : 'assistant', content: m.text }));
-
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${API_KEY}`,
-                        'HTTP-Referer': window.location.origin,
-                        'X-Title': 'Shark AI'
-                    },
-                    body: JSON.stringify({
-                        model: MODEL,
-                        messages: [
-                            { role: 'system', content: 'Ты Shark AI — акула-помощник. Отвечай на русском, помогай с кодом.' },
-                            ...history,
-                            { role: 'user', content: message }
-                        ],
-                        max_tokens: 500,
-                        temperature: 0.7
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error?.message || `Ошибка ${response.status}`);
-                }
-
-                const data = await response.json();
-                return data.choices[0].message.content;
-            } catch (error) {
-                console.error('API Error:', error);
-                return `⚠️ Ошибка: ${error.message}`;
-            }
-        }
-
-        // ===== ОТПРАВКА =====
-        async function handleSend() {
-            if (isProcessing) return;
-            const text = input.value.trim();
-            if (!text) return;
-
-            isProcessing = true;
-            sendBtn.disabled = true;
-            input.disabled = true;
-
-            if (!currentChatId || !chats[currentChatId]) {
-                currentChatId = createNewChat();
-                loadChat(currentChatId);
-            }
-
-            addMessage(text, true);
-            addTypingIndicator();
-
-            try {
-                const reply = await sendToAI(text);
-                removeTypingIndicator();
-                addMessage(reply, false);
-            } catch (error) {
-                removeTypingIndicator();
-                addMessage(`⚠️ Ошибка: ${error.message}`, false);
-            }
-
-            isProcessing = false;
-            sendBtn.disabled = false;
-            input.disabled = false;
-            input.value = '';
-            input.focus();
-        }
-
-        // ===== ФАЙЛЫ =====
-        function handleFiles(files) {
-            if (isProcessing) return;
-            if (!currentChatId || !chats[currentChatId]) {
-                currentChatId = createNewChat();
-                loadChat(currentChatId);
-            }
-
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    let content = e.target.result;
-                    if (file.type === 'application/pdf' || file.name.endsWith('.docx')) {
-                        addMessage(`📄 ${file.name} загружен`, true);
-                        sendToAI(`Я загрузил файл ${file.name}. Расскажи что с ним можно сделать.`).then(reply => addMessage(reply, false));
-                        return;
-                    }
-                    if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
-                        content = content;
-                    } else {
-                        content = 'Файл: ' + file.name;
-                    }
-
-                    if (content && content.length > 0) {
-                        const preview = content.slice(0, 500) + (content.length > 500 ? '...' : '');
-                        addMessage(`📎 Файл: ${file.name}\n\n${preview}`, true);
-                        sendToAI(`Содержимое файла "${file.name}":\n${content.slice(0, 3000)}`).then(reply => addMessage(reply, false));
-                    }
-                };
-                if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
-                    reader.readAsText(file);
-                } else {
-                    reader.readAsDataURL(file);
-                }
+      function typeChunk() {
+        if (index < fullText.length) {
+          const currentText = fullText.substring(0, index + chunkSize);
+          const copyBtn = bubble.querySelector('.copy-btn');
+          Array.from(bubble.children).forEach(child => {
+            if (child !== copyBtn) child.remove();
+          });
+          const p = document.createElement('p');
+          p.textContent = currentText;
+          bubble.appendChild(p);
+          if (copyBtn) bubble.appendChild(copyBtn);
+          scrollToBottom();
+          index += chunkSize;
+          setTimeout(typeChunk, delay);
+        } else {
+          const newBubble = document.createElement('div');
+          newBubble.className = 'bubble';
+          const oldCopyBtn = bubble.querySelector('.copy-btn');
+          if (oldCopyBtn) {
+            const newCopyBtn = oldCopyBtn.cloneNode(true);
+            newCopyBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              copyToClipboard(fullText, newCopyBtn, 'Скопировано!');
             });
-        }
-
-        // ===== СПИСОК ЧАТОВ =====
-        function updateChatList() {
-            const chatIds = Object.keys(chats);
-            if (chatIds.length === 0) {
-                chatList.innerHTML = '<div class="empty-chats">Нет чатов. Создайте новый!</div>';
-                return;
+            newBubble.appendChild(newCopyBtn);
+          }
+          const parts = parseCodeBlocks(fullText);
+          parts.forEach(part => {
+            if (part.type === 'text' && part.content.trim()) {
+              const p = document.createElement('p');
+              p.textContent = part.content;
+              newBubble.appendChild(p);
+            } else if (part.type === 'code') {
+              const block = createCodeBlock(part.lang, part.code);
+              newBubble.appendChild(block);
             }
+          });
+          const ts = document.createElement('div');
+          ts.className = 'timestamp';
+          ts.innerHTML = `<span>${new Date().toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' })}</span>`;
+          newBubble.appendChild(ts);
+          const parent = bubble.parentNode;
+          parent.replaceChild(newBubble, bubble);
+          Prism.highlightAllUnder(parent);
+          scrollToBottom();
+          if (callback) callback();
+        }
+      }
+      typeChunk();
+    }
 
-            chatIds.sort((a, b) => new Date(chats[b].updated) - new Date(chats[a].updated));
+    // ---------- ОТПРАВКА СООБЩЕНИЯ ----------
+    async function sendMessage(text) {
+      if (isProcessing) return;
+      if (!text.trim()) return;
 
-            chatList.innerHTML = '';
-            chatIds.forEach(id => {
-                const chat = chats[id];
-                const div = document.createElement('div');
-                div.className = `chat-list-item ${id === currentChatId ? 'active' : ''}`;
-                const preview = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].text.slice(0, 35) + '...' : 'Пустой чат';
-                const date = new Date(chat.updated);
-                const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const chat = getCurrentChat();
+      if (!chat) return;
 
-                div.innerHTML = `
-                    <div class="chat-title">${chat.title || 'Новый чат'}</div>
-                    <div class="chat-preview">${preview}</div>
-                    <div class="chat-time">${timeStr}</div>
-                    <button class="chat-delete" data-id="${id}"><i class="fas fa-trash-alt"></i></button>
-                `;
+      addMessage('user', text.trim());
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+      isProcessing = true;
+      sendBtn.disabled = true;
 
-                div.addEventListener('click', (e) => {
-                    if (e.target.closest('.chat-delete')) return;
-                    closeSidebar();
-                    loadChat(id);
-                });
+      const tempDiv = document.createElement('div');
+      tempDiv.className = 'msg assistant';
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.innerHTML = '<i class="fas fa-robot"></i>';
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      const typing = document.createElement('div');
+      typing.className = 'typing-indicator';
+      typing.innerHTML = '<span></span><span></span><span></span>';
+      bubble.appendChild(typing);
+      tempDiv.appendChild(avatar);
+      tempDiv.appendChild(bubble);
+      messagesContainer.appendChild(tempDiv);
+      emptyState.style.display = 'none';
+      scrollToBottom();
 
-                div.querySelector('.chat-delete').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (confirm('Удалить этот чат?')) {
-                        delete chats[id];
-                        saveAllChats();
-                        const ids = Object.keys(chats);
-                        loadChat(ids.length > 0 ? ids[0] : createNewChat());
-                        updateChatList();
-                    }
-                });
+      try {
+        const history = chat.messages.slice(-10).map(m => ({ role: m.role, content: m.content }));
 
-                chatList.appendChild(div);
-            });
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_KEY}`,
+            'HTTP-Referer': window.location.href,
+            'X-Title': 'Shark AI Chat'
+          },
+          body: JSON.stringify({
+            model: MODEL,
+            messages: history,
+            temperature: 0.7,
+            max_tokens: 2000,
+            stream: false
+          })
+        });
+
+        if (!response.ok) {
+          let errMsg = `Ошибка ${response.status}`;
+          try {
+            const errData = await response.json();
+            errMsg = errData.error?.message || errMsg;
+          } catch(e) {}
+          throw new Error(errMsg);
         }
 
-        // ===== САЙДБАР =====
-        function openSidebar() { sidebarOverlay.classList.add('open');
-            updateChatList(); }
+        const data = await response.json();
+        const reply = data.choices?.[0]?.message?.content || 'Извините, я не смог сформулировать ответ.';
 
-        function closeSidebar() { sidebarOverlay.classList.remove('open'); }
+        tempDiv.remove();
 
-        // ===== ИНИЦИАЛИЗАЦИЯ =====
-        function init() {
-            loadTheme();
-            loadAllChats();
-            const chatIds = Object.keys(chats);
-            loadChat(chatIds.length > 0 ? chatIds[0] : createNewChat());
+        const finalDiv = document.createElement('div');
+        finalDiv.className = 'msg assistant';
+        const finalAvatar = document.createElement('div');
+        finalAvatar.className = 'avatar';
+        finalAvatar.innerHTML = '<i class="fas fa-robot"></i>';
+        const finalBubble = document.createElement('div');
+        finalBubble.className = 'bubble';
+        finalDiv.appendChild(finalAvatar);
+        finalDiv.appendChild(finalBubble);
+        messagesContainer.appendChild(finalDiv);
 
-            sendBtn.addEventListener('click', (e) => { e.preventDefault();
-                handleSend(); });
-            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault();
-                    handleSend(); } });
+        typeTextIntoBubble(finalBubble, reply.trim(), () => {
+          chat.messages.push({ role: 'assistant', content: reply.trim() });
+          saveToStorage();
+          renderSidebar();
+        });
 
-            document.querySelectorAll('.suggestion-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    input.value = this.dataset.text;
-                    handleSend();
-                });
-            });
+      } catch (error) {
+        tempDiv.remove();
+        addMessage('assistant', `⚠️ Ошибка: ${error.message || 'Не удалось получить ответ.'}`);
+      } finally {
+        isProcessing = false;
+        sendBtn.disabled = false;
+        messageInput.focus();
+      }
+    }
 
-            fileBtn.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    handleFiles(e.target.files);
-                    fileInput.value = '';
-                }
-            });
+    // ---------- EVENT LISTENERS ----------
+    sendBtn.addEventListener('click', () => sendMessage(messageInput.value));
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendBtn.click();
+      }
+    });
+    messageInput.addEventListener('input', () => {
+      messageInput.style.height = 'auto';
+      messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+    });
+    newChatBtn.addEventListener('click', () => {
+      createNewChat('Новый чат');
+      messageInput.focus();
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+      }
+    });
 
-            document.getElementById('sidebarToggle').addEventListener('click', openSidebar);
-            document.getElementById('closeSidebar').addEventListener('click', closeSidebar);
-            sidebarOverlay.addEventListener('click', (e) => { if (e.target === sidebarOverlay) closeSidebar(); });
+    // ---------- INIT ----------
+    loadFromStorage();
+    renderSidebar();
+    renderMessages();
+    messageInput.focus();
+    if (!chats.length) {
+      createNewChat();
+      renderSidebar();
+      renderMessages();
+      saveToStorage();
+    }
+    emptyState.addEventListener('click', () => messageInput.focus());
 
-            document.getElementById('newChatBtn').addEventListener('click', () => {
-                const newId = createNewChat();
-                loadChat(newId);
-                closeSidebar();
-            });
-
-            document.getElementById('newChatFromSidebar').addEventListener('click', () => {
-                const newId = createNewChat();
-                loadChat(newId);
-                closeSidebar();
-            });
-
-            console.log('🦈 Shark AI готов!');
-        }
-
-        init();
-    </script>
-
+  })();
+</script>
 </body>
 </html>
